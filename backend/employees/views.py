@@ -7,4 +7,4 @@ from .serializers import EmployeeSerializer
 class EmployeeViewSet(viewsets.ModelViewSet):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
-    filterset_fields = ['role', 'assigned_pickup_point']
+    filterset_fields = ['role', 'default_pickup_point']

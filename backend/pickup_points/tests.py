@@ -28,8 +28,8 @@ class EmployeeTests(APITestCase):
             'date_of_birth': '1990-01-01',
             'date_of_hire': date.today(),
             'position': 'Manager',
-            'agent': self.agent.id,  # Pass the ID for API call
-            'default_pickup_point': self.pickup_point.id,  # Pass the ID for API call
+            'agent': self.agent,  # Передача экземпляра Agent
+            'default_pickup_point': self.pickup_point,  # Передача экземпляра PickupPoint
             'role': 'manager',
             'is_active': True
         }
