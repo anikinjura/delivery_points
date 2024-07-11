@@ -1,80 +1,68 @@
-# backend/employees/tests.py
+# backend/pickup_points/tests.py
 
 from rest_framework.test import APITestCase
 from rest_framework import status
-from employees.models import Employee
-from agents.models import Agent
 from pickup_points.models import PickupPoint
+from agents.models import Agent
 from django.urls import reverse
-from datetime import date
 
-class EmployeeTests(APITestCase):
+class PickupPointTests(APITestCase):
     def setUp(self):
         self.agent = Agent.objects.create(
             name='Agent One',
             email='agentone@example.com',
             phone_number='1234567890'
         )
+        self.pickup_point_data = {
+            'name': 'Pickup Point One',
+            'address': '123 Test St',
+            'agent': self.agent.id
+        }
         self.pickup_point = PickupPoint.objects.create(
-            name='Pickup Point One',
-            address='123 Test St',
+            name=self.pickup_point_data['name'],
+            address=self.pickup_point_data['address'],
             agent=self.agent
         )
-        self.employee_data = {
-            'first_name': 'John',
-            'last_name': 'Doe',
-            'email': 'johndoe@example.com',
-            'phone_number': '1234567890',
-            'date_of_birth': '1990-01-01',
-            'date_of_hire': date.today(),
-            'position': 'Manager',
-            'agent': self.agent,  # Передача экземпляра Agent
-            'default_pickup_point': self.pickup_point,  # Передача экземпляра PickupPoint
-            'role': 'manager',
-            'is_active': True
+
+    def test_create_pickup_point(self):
+        url = reverse('pickuppoint-list')
+        data = {
+            'name': 'Pickup Point Two',
+            'address': '456 Test Ave',
+            'agent': self.agent.id
         }
-        self.employee = Employee.objects.create(
-            first_name='John',
-            last_name='Doe',
-            email='johndoe@example.com',
-            phone_number='1234567890',
-            date_of_birth='1990-01-01',
-            date_of_hire=date.today(),
-            position='Manager',
-            agent=self.agent,  # Pass the actual instance
-            default_pickup_point=self.pickup_point,  # Pass the actual instance
-            role='manager',
-            is_active=True
-        )
-
-    def test_create_employee(self):
-        url = reverse('employee-list')
-        response = self.client.post(url, self.employee_data, format='json')
+        response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(PickupPoint.objects.count(), 2)
+        self.assertEqual(PickupPoint.objects.last().name, 'Pickup Point Two')
 
-    def test_get_employees(self):
-        url = reverse('employee-list')
+    def test_get_pickup_points(self):
+        url = reverse('pickuppoint-list')
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data['count'], 1)  # Проверяем количество объектов
+        self.assertEqual(len(response.data['results']), 1)  # Проверяем длину списка объектов
 
-    def test_get_employee(self):
-        url = reverse('employee-detail', args=[self.employee.id])
+    def test_get_pickup_point(self):
+        url = reverse('pickuppoint-detail', args=[self.pickup_point.id])
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['first_name'], self.employee.first_name)
+        self.assertEqual(response.data['name'], self.pickup_point.name)
 
-    def test_update_employee(self):
-        url = reverse('employee-detail', args=[self.employee.id])
-        updated_data = self.employee_data.copy()
-        updated_data['first_name'] = 'Jane'
+    def test_update_pickup_point(self):
+        url = reverse('pickuppoint-detail', args=[self.pickup_point.id])
+        updated_data = {
+            'name': 'Pickup Point Updated',
+            'address': self.pickup_point_data['address'],
+            'agent': self.agent.id
+        }
         response = self.client.put(url, updated_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.employee.refresh_from_db()
-        self.assertEqual(self.employee.first_name, 'Jane')
+        self.pickup_point.refresh_from_db()
+        self.assertEqual(self.pickup_point.name, 'Pickup Point Updated')
 
-    def test_delete_employee(self):
-        url = reverse('employee-detail', args=[self.employee.id])
+    def test_delete_pickup_point(self):
+        url = reverse('pickuppoint-detail', args=[self.pickup_point.id])
         response = self.client.delete(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertFalse(Employee.objects.filter(id=self.employee.id).exists())
+        self.assertFalse(PickupPoint.objects.filter(id=self.pickup_point.id).exists())
