@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     'django_filters',
     'dal',
     'dal_select2',
+    'core',
     'agents',
     'pickup_points',
     'employees',
